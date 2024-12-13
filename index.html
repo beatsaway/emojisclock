@@ -263,11 +263,11 @@
       </p>
       <p>
         <strong>Emojis, The Modern Pop Art Language 🗨️:</strong> Emojis are the digital descendants of Pop Art's philosophy. They capture contemporary emotions and ideas through simple, universally recognized symbols, breaking down communication barriers and fostering inclusivity.
-      </p>
-      <p>
+      </p><p>
         <ul>
-          <li>✨ <strong>click emojis:</strong> Change the ClockBase (choose from left panel) or AcrylicTop (choose from right panel).</li>
+          <li>✨ <strong>click emojis:</strong> Change the Clock Base layer(choose from left panel) or Acrylic Top layer(choose from right panel).</li>
           <li>🔧 <strong>move sliders:</strong> Adjust size, rotation, position, and scaling of your selected emojis independently.</li>
+          <li>✔ <strong>check/uncheck boxes:</strong> On/off visibility of Clock Base or Acrylic Top
           <li>⌨️ <strong>press left/right arrow key:</strong> Choose next or previous emoji on panel quickly.</li>
           <li>🎲 <strong>press spacebar:</strong> Generate a random design.</li>
           <li>📝 <strong>emojis are copyrighted.</strong> Please use as inspirations and references only to develop your own original designs.</li>
@@ -286,7 +286,7 @@
     </div>
     <div id="controls-left">
       <h3>
-        ⚙️ ClockBase Controls
+        💥 Clock Base
         <input type="checkbox" id="toggleClockBase" checked>
       </h3>
       <div class="control-group">
@@ -332,8 +332,8 @@
     </div>
     <div id="controls-right">
       <h3>
-        ⚙️ AcrylicTop Controls
-        <input type="checkbox" id="toggleAcrylicTop" checked>
+        ❤️ Acrylic Top
+        <input type="checkbox" id="toggleAcrylicTop">
       </h3>
       <div class="control-group">
         <label for="acrylicTopSizeSlider">🔍 Size:</label>
@@ -427,7 +427,7 @@
       y: 300,
       widthScale: 1,
       heightScale: 1,
-      visible: true    // Visibility flag
+      visible: false    // Visibility flag (default unchecked)
     };
 
     // Function to select an emoji for ClockBase
@@ -474,6 +474,11 @@
     window.addEventListener('DOMContentLoaded', () => {
       initializeToolbar(clockbaseToolbar, clockbaseToolbarSpans, selectClockbaseEmoji);
       initializeToolbar(acrylicTopToolbar, acrylicTopToolbarSpans, selectAcrylicTopEmoji);
+
+      // Set initial visibility based on checkboxes
+      clockBase.visible = toggleClockBase.checked;
+      acrylicTop.visible = toggleAcrylicTop.checked;
+
       showModal(); // Show the introductory modal on page load
     });
 
