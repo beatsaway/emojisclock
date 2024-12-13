@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pop Art Clock Design Project</title>
+  <style>
+    /* Importing a modern Japanese-friendly font */
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+
+    body {
+      margin: 0;
+      font-family: 'Noto Sans JP', sans-serif;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      background-color: #f5f5f5; /* Light grey background for a clean look */
+    }
+
+    /* Increased sidebar widths for accommodating horizontal sliders */
+    #sidebar-left, #sidebar-right {
+      width: 300px; /* Increased from 250px */
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px;
+      background: #ffffff; /* White background for contrast */
+      overflow-y: auto;
+      border-right: 1px solid #ddd;
+    }
+
+    #sidebar-right {
+      border-left: 1px solid #ddd;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      justify-content: center;
+      align-items: center;
+      max-height: 50vh;
+      overflow-y: auto;
+      outline: none; /* Remove default focus outline */
+      padding: 4px;
+      background-color: #fafafa; /* Slightly different shade for distinction */
+      border-radius: 8px;
+    }
+
+    .toolbar span {
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 6px;
+      border: 2px solid transparent;
+      border-radius: 50%;
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .toolbar span:hover {
+      background-color: #f0f0f0;
+    }
+
+    .toolbar span.selected {
+      border-color: #e53935; /* Red accent for selection */
+      background-color: #ffe0e0;
+    }
+
+    #controls-left, #controls-right {
+      display: flex;
+      flex-direction: column;
+      gap: 8px; /* Maintained gap for better separation */
+      padding: 4px;
+      background-color: #fafafa;
+      border-radius: 8px;
+    }
+
+    /* Container for header and checkbox */
+    .controls-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #controls-left h3, #controls-right h3 {
+      margin: 0;
+      padding-bottom: 4px;
+      font-size: 1rem;
+      text-align: center;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      gap: 8px; /* Space between header text and checkbox */
+    }
+
+    /* Flex container for label and slider */
+    .control-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .control-group label {
+      flex: 1;
+      margin-right: 10px;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    .control-group input[type="range"] {
+      flex: 2;
+    }
+
+    #canvasWrapper {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #ffffff;
+      position: relative;
+    }
+
+    canvas {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1000; /* Sit on top */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgba(0, 0, 0, 0.6); /* Darker overlay for emphasis */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0px;
+    }
+
+    .modal-content {
+      background-color: #ffffff;
+      padding: 20px;
+      border: none;
+      width: 100%;
+      max-width: 600px; /* Increased for more content space */
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      position: relative;
+      animation: fadeIn 0.5s ease;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .close {
+      color: #aaa;
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: #e53935; /* Red accent on hover */
+    }
+
+    /* Animation for modal */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Button Styles */
+    #startInspiration {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #e53935; /* Red button */
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s;
+    }
+
+    #startInspiration:hover {
+      background-color: #c62828;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      #sidebar-left, #sidebar-right {
+        width: 250px; /* Slightly reduced for smaller screens */
+      }
+
+      .toolbar span {
+        font-size: 1rem;
+        padding: 4px;
+      }
+
+      #controls-left h3, #controls-right h3 {
+        font-size: 0.9rem;
+      }
+
+      .modal-content {
+        max-width: 90%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        flex-direction: column;
+      }
+
+      #sidebar-left, #sidebar-right {
+        width: 100%;
+        height: 200px;
+        border: none;
+        border-top: 1px solid #ddd;
+      }
+
+      #canvasWrapper {
+        height: calc(100vh - 400px);
+      }
+
+      .control-group {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .control-group label {
+        margin-bottom: 4px;
+      }
+
+      .control-group input[type="range"] {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Modal Structure -->
+  <div id="introModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      
+      <h2>Pop Art Clock Design: Getting inspired by emojis</h2>
+      <p>
+        <strong>About Pop Art:</strong> Pop Art emerged in the 1950s, democratizing art by celebrating everyday culture with bold and vibrant imagery. Icons like Andy Warhol and Roy Lichtenstein transformed ordinary objects into striking visual statements, making art accessible and relatable.
+      </p>
+      <p>
+        <strong>Emojis, The Modern Pop Art Language 🗨️:</strong> Emojis are the digital descendants of Pop Art's philosophy. They capture contemporary emotions and ideas through simple, universally recognized symbols, breaking down communication barriers and fostering inclusivity.
+      </p>
+      <p>
+        <ul>
+          <li>✨ <strong>click emojis:</strong> Choose from two panels—ClockBase (left) and AcrylicTop (right). Click an emoji to apply it to the respective layer.</li>
+          <li>🔧 <strong>move sliders:</strong> Use the sliders to adjust size, rotation, position, and scaling of your selected emojis independently.</li>
+          <li>⌨️ <strong>press left/right arrow key:</strong> press them to choose next or previous emoji quickly.</li>
+          <li>🎲 <strong>press spacebar:</strong> Press it to generate a random design.</li>
+          <li>📝 <strong>Emojis are copyrighted.</strong> Use them as inspirations and references to guide your own creative process and develop original designs.</li>
+        </ul>
+      </p>
+
+      <button id="startInspiration">🚀 Get Started</button>
+    </div>
+  </div>
+  <!-- End of Modal Structure -->
+
+
+  <div id="sidebar-left">
+    <div id="clockbaseToolbar" class="toolbar" tabindex="0" aria-label="ClockBase Emoji Toolbar">
+      <!-- ClockBase Emojis will be dynamically inserted here from clockbase.js -->
+    </div>
+    <div id="controls-left">
+      <h3>
+        ⚙️ ClockBase Controls
+        <input type="checkbox" id="toggleClockBase" checked>
+      </h3>
+      <div class="control-group">
+        <label for="clockbaseSizeSlider">🔍 Size:</label>
+        <input type="range" id="clockbaseSizeSlider" min="20" max="600" value="400"/>
+      </div>
+
+      <div class="control-group">
+        <label for="rotateBaseSlider">🔄 Rotate:</label>
+        <input type="range" id="rotateBaseSlider" min="0" max="360" value="0"/>
+      </div>
+
+      <div class="control-group">
+        <label for="clockbaseXSlider">⬅️ X Position:</label>
+        <input type="range" id="clockbaseXSlider" min="0" max="800" value="400"/>
+      </div>
+
+      <div class="control-group">
+        <label for="clockbaseYSlider">⬇️ Y Position:</label>
+        <input type="range" id="clockbaseYSlider" min="0" max="600" value="300"/>
+      </div>
+
+      <!-- Sliders for ClockBase Emoji Width and Height -->
+      <div class="control-group">
+        <label for="clockbaseEmojiWidthSlider">↔️ Width (%):</label>
+        <input type="range" id="clockbaseEmojiWidthSlider" min="50" max="200" value="100"/>
+      </div>
+
+      <div class="control-group">
+        <label for="clockbaseEmojiHeightSlider">↕️ Height (%):</label>
+        <input type="range" id="clockbaseEmojiHeightSlider" min="50" max="200" value="100"/>
+      </div>
+    </div>
+  </div>
+
+  <div id="canvasWrapper">
+    <canvas id="artCanvas" width="800" height="600" aria-label="Art Canvas"></canvas>
+  </div>
+
+  <div id="sidebar-right">
+    <div id="acrylicTopToolbar" class="toolbar" tabindex="0" aria-label="AcrylicTop Emoji Toolbar">
+      <!-- AcrylicTop Emojis will be dynamically inserted here from clockbase.js -->
+    </div>
+    <div id="controls-right">
+      <h3>
+        ⚙️ AcrylicTop Controls
+        <input type="checkbox" id="toggleAcrylicTop" checked>
+      </h3>
+      <div class="control-group">
+        <label for="acrylicTopSizeSlider">🔍 Size:</label>
+        <input type="range" id="acrylicTopSizeSlider" min="20" max="600" value="200"/>
+      </div>
+
+      <div class="control-group">
+        <label for="rotateAcrylicTopSlider">🔄 Rotate:</label>
+        <input type="range" id="rotateAcrylicTopSlider" min="0" max="360" value="0"/>
+      </div>
+
+      <div class="control-group">
+        <label for="acrylicTopXSlider">⬅️ X Position:</label>
+        <input type="range" id="acrylicTopXSlider" min="0" max="800" value="400"/>
+      </div>
+
+      <div class="control-group">
+        <label for="acrylicTopYSlider">⬇️ Y Position:</label>
+        <input type="range" id="acrylicTopYSlider" min="0" max="600" value="300"/>
+      </div>
+
+      <!-- Sliders for AcrylicTop Emoji Width and Height -->
+      <div class="control-group">
+        <label for="acrylicTopEmojiWidthSlider">↔️ Width (%):</label>
+        <input type="range" id="acrylicTopEmojiWidthSlider" min="50" max="200" value="100"/>
+      </div>
+
+      <div class="control-group">
+        <label for="acrylicTopEmojiHeightSlider">↕️ Height (%):</label>
+        <input type="range" id="acrylicTopEmojiHeightSlider" min="50" max="200" value="100"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import the clockbase.js before the main script -->
+  <script src="clockbase.js"></script>
+
+  <script>
+    // Assuming clockbase.js defines emojilist as follows:
+    // const emojilist = ['😀', '🎉', '🚀', '🌟', '🔥', '💧', '🌈', '⚡', '🍀', '🍎', '🎨', '🎭', '📚', '🎶', '🏆', '🏀'];
+
+    const clockbaseToolbar = document.getElementById('clockbaseToolbar');
+    const acrylicTopToolbar = document.getElementById('acrylicTopToolbar');
+    const canvas = document.getElementById('artCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // ClockBase Sliders
+    const clockbaseSizeSlider = document.getElementById('clockbaseSizeSlider');
+    const rotateBaseSlider = document.getElementById('rotateBaseSlider');
+    const clockbaseXSlider = document.getElementById('clockbaseXSlider');
+    const clockbaseYSlider = document.getElementById('clockbaseYSlider');
+    const clockbaseEmojiWidthSlider = document.getElementById('clockbaseEmojiWidthSlider');
+    const clockbaseEmojiHeightSlider = document.getElementById('clockbaseEmojiHeightSlider');
+
+    // AcrylicTop Sliders
+    const acrylicTopSizeSlider = document.getElementById('acrylicTopSizeSlider');
+    const rotateAcrylicTopSlider = document.getElementById('rotateAcrylicTopSlider');
+    const acrylicTopXSlider = document.getElementById('acrylicTopXSlider');
+    const acrylicTopYSlider = document.getElementById('acrylicTopYSlider');
+    const acrylicTopEmojiWidthSlider = document.getElementById('acrylicTopEmojiWidthSlider');
+    const acrylicTopEmojiHeightSlider = document.getElementById('acrylicTopEmojiHeightSlider');
+
+    // Toggle Checkboxes
+    const toggleClockBase = document.getElementById('toggleClockBase');
+    const toggleAcrylicTop = document.getElementById('toggleAcrylicTop');
+
+    let clockbaseSelectedEmoji = null;
+    let acrylicTopSelectedEmoji = null;
+
+    let clockbaseToolbarSpans = []; // To store ClockBase emoji spans
+    let acrylicTopToolbarSpans = []; // To store AcrylicTop emoji spans
+    let currentClockbaseEmojiIndex = 0;
+    let currentAcrylicTopEmojiIndex = 0;
+
+    const clockBase = {
+      emoji: null,
+      rotation: 0,
+      size: 400,
+      x: 400,
+      y: 300,
+      widthScale: 1,  // For width scaling
+      heightScale: 1,  // For height scaling
+      visible: true    // Visibility flag
+    };
+
+    const acrylicTop = {
+      emoji: null,
+      rotation: 0,
+      size: 200,
+      x: 400,
+      y: 300,
+      widthScale: 1,
+      heightScale: 1,
+      visible: true    // Visibility flag
+    };
+
+    // Function to select an emoji for ClockBase
+    function selectClockbaseEmoji(index) {
+      if (index < 0 || index >= clockbaseToolbarSpans.length) return;
+      clockbaseToolbarSpans.forEach(span => span.classList.remove('selected'));
+      clockbaseToolbarSpans[index].classList.add('selected');
+      clockbaseSelectedEmoji = clockbaseToolbarSpans[index].textContent;
+      clockBase.emoji = clockbaseSelectedEmoji;
+      currentClockbaseEmojiIndex = index;
+      drawScene();
+    }
+
+    // Function to select an emoji for AcrylicTop
+    function selectAcrylicTopEmoji(index) {
+      if (index < 0 || index >= acrylicTopToolbarSpans.length) return;
+      acrylicTopToolbarSpans.forEach(span => span.classList.remove('selected'));
+      acrylicTopToolbarSpans[index].classList.add('selected');
+      acrylicTopSelectedEmoji = acrylicTopToolbarSpans[index].textContent;
+      acrylicTop.emoji = acrylicTopSelectedEmoji;
+      currentAcrylicTopEmojiIndex = index;
+      drawScene();
+    }
+
+    // Function to initialize a toolbar with emojis
+    function initializeToolbar(toolbar, toolbarSpansArray, selectFunction) {
+      emojilist.forEach((emoji, index) => {
+        const span = document.createElement('span');
+        span.textContent = emoji;
+        span.setAttribute('tabindex', '0');
+        toolbar.appendChild(span);
+        toolbarSpansArray.push(span);
+      });
+
+      // Select a random emoji on load
+      if (toolbarSpansArray.length > 0) {
+        const randomIndex = Math.floor(Math.random() * toolbarSpansArray.length);
+        selectFunction(randomIndex);
+        toolbarSpansArray[randomIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      }
+    }
+
+    // Initialize both toolbars once the DOM is fully loaded
+    window.addEventListener('DOMContentLoaded', () => {
+      initializeToolbar(clockbaseToolbar, clockbaseToolbarSpans, selectClockbaseEmoji);
+      initializeToolbar(acrylicTopToolbar, acrylicTopToolbarSpans, selectAcrylicTopEmoji);
+      showModal(); // Show the introductory modal on page load
+    });
+
+    // Handle ClockBase toolbar selection
+    clockbaseToolbar.addEventListener('click', (e) => {
+      if (e.target.tagName.toLowerCase() === 'span') {
+        const index = clockbaseToolbarSpans.indexOf(e.target);
+        if (index !== -1) {
+          selectClockbaseEmoji(index);
+        }
+      }
+    });
+
+    // Handle AcrylicTop toolbar selection
+    acrylicTopToolbar.addEventListener('click', (e) => {
+      if (e.target.tagName.toLowerCase() === 'span') {
+        const index = acrylicTopToolbarSpans.indexOf(e.target);
+        if (index !== -1) {
+          selectAcrylicTopEmoji(index);
+        }
+      }
+    });
+
+    // Keyboard navigation for ClockBase toolbar
+    clockbaseToolbar.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        let newIndex = currentClockbaseEmojiIndex + 1;
+        if (newIndex >= clockbaseToolbarSpans.length) newIndex = 0;
+        selectClockbaseEmoji(newIndex);
+        clockbaseToolbarSpans[newIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        let newIndex = currentClockbaseEmojiIndex - 1;
+        if (newIndex < 0) newIndex = clockbaseToolbarSpans.length - 1;
+        selectClockbaseEmoji(newIndex);
+        clockbaseToolbarSpans[newIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      }
+    });
+
+    // Keyboard navigation for AcrylicTop toolbar
+    acrylicTopToolbar.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        let newIndex = currentAcrylicTopEmojiIndex + 1;
+        if (newIndex >= acrylicTopToolbarSpans.length) newIndex = 0;
+        selectAcrylicTopEmoji(newIndex);
+        acrylicTopToolbarSpans[newIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        let newIndex = currentAcrylicTopEmojiIndex - 1;
+        if (newIndex < 0) newIndex = acrylicTopToolbarSpans.length - 1;
+        selectAcrylicTopEmoji(newIndex);
+        acrylicTopToolbarSpans[newIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      }
+    });
+
+    // Global keyboard event to handle Arrow keys and Spacebar
+    window.addEventListener('keydown', (e) => {
+      // Handle Arrow keys
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        const activeElement = document.activeElement;
+        if (activeElement !== clockbaseToolbar && activeElement !== acrylicTopToolbar) {
+          e.preventDefault();
+          clockbaseToolbar.focus();
+        }
+      }
+
+      // Listen for Spacebar to randomize design
+      if (e.key === ' ' || e.key === 'Spacebar') {
+        e.preventDefault();
+        randomizeDesign();
+      }
+    });
+
+    // Event listeners for ClockBase sliders
+    clockbaseSizeSlider.addEventListener('input', (e) => {
+      clockBase.size = parseInt(e.target.value, 10);
+      drawScene();
+    });
+
+    rotateBaseSlider.addEventListener('input', (e) => {
+      clockBase.rotation = parseInt(e.target.value, 10);
+      drawScene();
+    });
+
+    clockbaseXSlider.addEventListener('input', (e) => {
+      clockBase.x = parseInt(e.target.value, 10);
+      drawScene();
+    });
+
+    clockbaseYSlider.addEventListener('input', (e) => {
+      clockBase.y = parseInt(e.target.value, 10);
+      drawScene();
+    });
+
+    clockbaseEmojiWidthSlider.addEventListener('input', (e) => {
+      clockBase.widthScale = parseInt(e.target.value, 10) / 100; // Convert percentage to scale factor
+      drawScene();
+    });
+
+    clockbaseEmojiHeightSlider.addEventListener('input', (e) => {
+      clockBase.heightScale = parseInt(e.target.value, 10) / 100; // Convert percentage to scale factor
+      drawScene();
+    });
+
+    // Event listeners for AcrylicTop sliders
+    acrylicTopSizeSlider.addEventListener('input', (e) => {
+      acrylicTop.size = parseInt(e.target.value, 10);
+      drawScene();
+    });
+
+    rotateAcrylicTopSlider.addEventListener('input', (e) => {
+      acrylicTop.rotation = parseInt(e.target.value, 10);
+      drawScene();
+    });
+
+    acrylicTopXSlider.addEventListener('input', (e) => {
+      acrylicTop.x = parseInt(e.target.value, 10);
+      drawScene();
+    });
+
+    acrylicTopYSlider.addEventListener('input', (e) => {
+      acrylicTop.y = parseInt(e.target.value, 10);
+      drawScene();
+    });
+
+    acrylicTopEmojiWidthSlider.addEventListener('input', (e) => {
+      acrylicTop.widthScale = parseInt(e.target.value, 10) / 100;
+      drawScene();
+    });
+
+    acrylicTopEmojiHeightSlider.addEventListener('input', (e) => {
+      acrylicTop.heightScale = parseInt(e.target.value, 10) / 100;
+      drawScene();
+    });
+
+    // Event listeners for Toggle Checkboxes
+    toggleClockBase.addEventListener('change', (e) => {
+      clockBase.visible = e.target.checked;
+      drawScene();
+    });
+
+    toggleAcrylicTop.addEventListener('change', (e) => {
+      acrylicTop.visible = e.target.checked;
+      drawScene();
+    });
+
+    // Function to draw the entire scene: ClockBase, AcrylicTop, and hands
+    function drawScene() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw ClockBase if set and visible
+      if (clockBase.emoji && clockBase.visible) {
+        ctx.save();
+        ctx.translate(clockBase.x, clockBase.y);
+        ctx.rotate(clockBase.rotation * Math.PI / 180);
+        
+        // Apply separate scaling for width and height
+        ctx.scale(clockBase.widthScale, clockBase.heightScale);
+        
+        ctx.font = `${clockBase.size}px sans-serif`;
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
+        ctx.fillText(clockBase.emoji, 0, 0);
+        ctx.restore();
+      }
+
+      // Draw AcrylicTop if set and visible
+      if (acrylicTop.emoji && acrylicTop.visible) {
+        ctx.save();
+        ctx.translate(acrylicTop.x, acrylicTop.y);
+        ctx.rotate(acrylicTop.rotation * Math.PI / 180);
+        
+        // Apply separate scaling for width and height
+        ctx.scale(acrylicTop.widthScale, acrylicTop.heightScale);
+        
+        ctx.font = `${acrylicTop.size}px sans-serif`;
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
+        ctx.fillText(acrylicTop.emoji, 0, 0);
+        ctx.restore();
+      }
+
+      // Draw clock hands
+      drawClock();
+    }
+
+    // Function to draw the clock hands
+    function drawClock() {
+      const now = new Date();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const radius = 220;
+
+      // Get current time
+      const hours = now.getHours() % 12;
+      const minutes = now.getMinutes();
+      const seconds = now.getSeconds();
+
+      const hourAngle = (Math.PI / 6) * (hours + minutes / 60);
+      const minuteAngle = (Math.PI / 30) * minutes;
+      const secondAngle = (Math.PI / 30) * seconds;
+
+      // Draw hour hand
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(
+        centerX + Math.cos(hourAngle) * (radius * 0.5),
+        centerY + Math.sin(hourAngle) * (radius * 0.5)
+      );
+      ctx.stroke();
+      ctx.closePath();
+
+      // Draw minute hand
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(
+        centerX + Math.cos(minuteAngle) * (radius * 0.7),
+        centerY + Math.sin(minuteAngle) * (radius * 0.7)
+      );
+      ctx.stroke();
+      ctx.closePath();
+
+      // Draw second hand
+      ctx.strokeStyle = '#e53935'; // Red color for visibility
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(
+        centerX + Math.cos(secondAngle) * (radius * 0.8),
+        centerY + Math.sin(secondAngle) * (radius * 0.8)
+      );
+      ctx.stroke();
+      ctx.closePath();
+    }
+
+    // Function to randomize the design (only emojis)
+    function randomizeDesign() {
+      // Randomly select emojis
+      const randomClockBaseIndex = Math.floor(Math.random() * clockbaseToolbarSpans.length);
+      const randomAcrylicTopIndex = Math.floor(Math.random() * acrylicTopToolbarSpans.length);
+
+      selectClockbaseEmoji(randomClockBaseIndex);
+      selectAcrylicTopEmoji(randomAcrylicTopIndex);
+    }
+
+    // Update the scene every second for the clock
+    setInterval(drawScene, 1000);
+
+    // Initial draw
+    drawScene();
+
+    /* Modal Functionality */
+
+    // Get the modal
+    const modal = document.getElementById('introModal');
+
+    // Get the <span> element that closes the modal
+    const span = document.querySelector('.close');
+
+    // Get the start button
+    const startButton = document.getElementById('startInspiration');
+
+    // Function to show the modal
+    function showModal() {
+      modal.style.display = 'flex';
+    }
+
+    // Function to close the modal and set focus to ClockBase toolbar
+    function closeModal() {
+      modal.style.display = 'none';
+      clockbaseToolbar.focus(); // Set focus to ClockBase toolbar for keyboard navigation
+    }
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = closeModal;
+
+    // When the user clicks on the start button, close the modal
+    startButton.onclick = closeModal;
+
+    // When the user clicks anywhere outside of the modal content, close it
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        closeModal();
+      }
+    }
+  </script>
+
+</body>
+</html>
